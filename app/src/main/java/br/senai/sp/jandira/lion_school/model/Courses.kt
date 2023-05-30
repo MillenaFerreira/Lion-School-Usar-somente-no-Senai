@@ -1,9 +1,9 @@
 package br.senai.sp.jandira.lion_school.model
 
 data class Courses(
-    val sigla : String? = null,
-    val icone : String? = null,
-    val nome : String? = null,
-    val carga : String? = null
+    val sigla : String,
+    val icone : String,
+    val nome : String,
+    val carga : String
 )
 //representante do objeto de cursos

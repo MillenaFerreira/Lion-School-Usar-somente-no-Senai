@@ -1,14 +1,10 @@
 package br.senai.sp.jandira.lion_school
 
 import android.content.Intent
-import android.graphics.drawable.GradientDrawable
-import android.graphics.drawable.ShapeDrawable
 import android.os.Bundle
 import android.util.Log
-import android.widget.ImageButton
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -22,15 +18,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import br.senai.sp.jandira.lion_school.model.Courses
 import br.senai.sp.jandira.lion_school.model.CoursesList
 import br.senai.sp.jandira.lion_school.service.RetrofitFactory
 import br.senai.sp.jandira.lion_school.ui.theme.LionSchoolTheme
@@ -66,7 +59,8 @@ fun CoursesScreen() {
 
     call.enqueue(object : Callback<CoursesList>{
         override fun onResponse(call: Call<CoursesList>, response: Response<CoursesList>) {
-            listCourses = response.body()!!.courses
+            listCourses = response.body()!!.cursos
+            Log.i("ds2t", "onResponse: ${response.body()!!.cursos}")
         }
 
         override fun onFailure(call: Call<CoursesList>, t: Throwable) {
@@ -172,6 +166,7 @@ fun CoursesScreen() {
                                 .fillMaxSize()
                                 .clickable {
                                     var openStudents = Intent(context, StudentsActivity::class.java)
+                                    openStudents.putExtra("sigla", it.sigla)
 
                                     //start a Activity
                                     context.startActivity(openStudents)
@@ -228,5 +223,6 @@ fun CoursesScreen() {
         }
     }
 }
+
 
 

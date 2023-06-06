@@ -2,4 +2,5 @@
     <string name="app_name">Lion-School</string>
     <string name="title_activity_courses">CoursesActivity</string>
     <string name="title_activity_students">StudentsActivity</string>
+    <string name="title_activity_student">StudentActivity</string>
 </resources>

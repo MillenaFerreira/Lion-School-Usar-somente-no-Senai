@@ -50,6 +50,10 @@ fun CoursesScreen() {
     //contexto atual
     val context = LocalContext.current
 
+    var siglaState by remember {
+        mutableStateOf("")
+    }
+
     var listCourses by remember {
         mutableStateOf(listOf<br.senai.sp.jandira.lion_school.model.Courses>())
     }
@@ -68,6 +72,13 @@ fun CoursesScreen() {
         }
     })
 
+    fun filterBySigla (sigla: String) {
+        var listNew = listCourses.filter { it.sigla == sigla }
+        if(listNew.isEmpty()){
+            listCourses = listNew
+        }
+    }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -75,8 +86,8 @@ fun CoursesScreen() {
                 brush = Brush
                     .verticalGradient(
                         listOf(
-                            Color(0, 91, 234),
-                            Color(255, 255, 255, 255)
+                            Color(51, 71, 176),
+                            Color(255, 255, 255)
                         )
                     )
             )
@@ -103,8 +114,11 @@ fun CoursesScreen() {
                 horizontalArrangement = Arrangement.Center
             ) {
                 OutlinedTextField(
-                    value = "",
-                    onValueChange = {},
+                    value = siglaState,
+                    onValueChange = {
+                        siglaState = it
+                        filterBySigla(it)
+                    },
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(50.dp),
                     colors = TextFieldDefaults.outlinedTextFieldColors(
@@ -138,8 +152,6 @@ fun CoursesScreen() {
                     color = Color.White,
                     lineHeight = 58.sp
                 )
-//                Text(text = "curso ", fontSize = 36.sp, color = Color.Blue)
-//                Text(text = "para gerenciar", fontSize = 36.sp)
             }
             Spacer(modifier = Modifier.height(30.dp))
             LazyColumn(
@@ -198,18 +210,6 @@ fun CoursesScreen() {
                                         text = it.nome ?: "teste",
                                         fontSize = 12.sp
                                     )
-                                    Row(verticalAlignment = Alignment.CenterVertically) {
-                                        Icon(
-                                            painter = painterResource(id = R.drawable.baseline_access_time_filled_24),
-                                            contentDescription = "",
-                                            modifier = Modifier.size(8.dp)
-                                        )
-                                        Spacer(modifier = Modifier.width(2.dp))
-                                        Text(
-                                            text = it.carga + "h",
-                                            fontSize = 8.sp
-                                        )
-                                    }
                                 }
 
                             }

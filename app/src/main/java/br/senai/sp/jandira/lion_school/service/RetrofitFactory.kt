@@ -6,7 +6,7 @@ import retrofit2.create
 
 class RetrofitFactory {
     //guarda a url Principal
-    private val BASE_URL = "https://tired-slug-hat.cyclic.app/v1/lion-school/"
+    private val BASE_URL = "https://lion-school-2023.cyclic.app/v1/lion-school/"
 
     //variavel que guarda como chegar no servidor (fazer a fabrica de conexao) (se conectar com a api)
     private val retrofitFactory = Retrofit
@@ -22,5 +22,4 @@ class RetrofitFactory {
     fun getStudentsService() : StudentsService{
         return retrofitFactory.create(StudentsService::class.java)
     }
-
 }

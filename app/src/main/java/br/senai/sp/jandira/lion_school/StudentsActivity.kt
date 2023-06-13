@@ -40,45 +40,77 @@ import retrofit2.Response
 class StudentsActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContent{
-            LionSchoolTheme{
-                val siglaCurso =intent.getStringExtra("sigla")
+        setContent {
+            LionSchoolTheme {
+                val siglaCurso = intent.getStringExtra("sigla")
                 StudentsScreen(siglaCurso.toString())
             }
         }
     }
 }
+
 //@Preview(showBackground = true, showSystemUi = true)
 @Composable
-fun StudentsScreen( curso: String ) {
+fun StudentsScreen(curso: String) {
+
+    // Estado para controlar a opção selecionada
+    var selectedOption by remember { mutableStateOf(1) }
 
     //contexto atual
     val context = LocalContext.current
 
-    var listStudents by remember{
+    var listStudents by remember {
         mutableStateOf(listOf<Students>())
     }
 
-    var nameCourse by remember{
+    var nameCourse by remember {
         mutableStateOf("")
     }
 
-// Estado para controlar a opção selecionada
-    var selectedOption by remember{mutableStateOf(1)}
+    // lista de alunos
+    fun fetchStudentsWithStatus(status: String) {
+        val call = RetrofitFactory().getStudentsService().getCourseStudentWithStatus(curso, status)
 
 
-    val call = RetrofitFactory().getStudentsService().getStudents(curso)
+        call.enqueue(object : Callback<StudentsList> {
+            override fun onResponse(call: Call<StudentsList>, response: Response<StudentsList>) {
+                listStudents = response.body()?.alunos ?: emptyList()
+                nameCourse = response.body()?.nomeCurso ?: ""
+            }
 
-    call.enqueue(object : Callback<StudentsList> {
-        override fun onResponse(call: Call<StudentsList>, response: Response<StudentsList>) {
-            listStudents = response.body()!!.aluno
-            nameCourse = response.body()!!.NomeCurso
+            override fun onFailure(call: Call<StudentsList>, t: Throwable) {
+                Log.i("teste", "onFailure: ${t.message} ")
+            }
+        })
+    }
+
+    // Atualizar a lista de alunos
+    LaunchedEffect(selectedOption) {
+        if (selectedOption == 1) {
+            val call = RetrofitFactory().getStudentsService().getStudents(curso)
+
+            call.enqueue(object : Callback<StudentsList> {
+                override fun onResponse(
+                    call: Call<StudentsList>,
+                    response: Response<StudentsList>
+                ) {
+                    listStudents = response.body()?.alunos ?: emptyList()
+                    nameCourse = response.body()?.nomeCurso ?: ""
+                }
+
+                override fun onFailure(call: Call<StudentsList>, t: Throwable) {
+                    Log.i("teste", "onFailure: ${t.message} ")
+                }
+            })
+        } else {
+            val status = when (selectedOption) {
+                2 -> "Cursando"
+                3 -> "Finalizado"
+                else -> "Todos"
+            }
+            fetchStudentsWithStatus(status)
         }
-
-        override fun onFailure(call: Call<StudentsList>, t: Throwable) {
-            Log.i("teste", "onFailure: ${t.message} ")
-        }
-    })
+    }
 
     Box(
         modifier = Modifier
@@ -92,19 +124,19 @@ fun StudentsScreen( curso: String ) {
                         )
                     )
             )
-    ){
+    ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(15.dp)
-        ){
+        ) {
             Icon(
                 painter = painterResource(id = R.drawable.baseline_arrow_back_24),
                 contentDescription = "",
                 tint = Color.White,
                 modifier = Modifier
                     .size(21.dp)
-                    .clickable{
+                    .clickable {
                         var backHome = Intent(context, CoursesActivity::class.java)
 
                         //start a Activity
@@ -115,7 +147,7 @@ fun StudentsScreen( curso: String ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.Center
-            ){
+            ) {
 //                OutlinedTextField(
 //                    value = "",
 //                    onValueChange = {},
@@ -143,22 +175,13 @@ fun StudentsScreen( curso: String ) {
 //                    }
 //                )
             }
-            ToggleButton(selectedOption, onOptionSelected ={option->
+            ToggleButton(selectedOption, onOptionSelected = { option ->
                 selectedOption = option
                 // Lógica para tratar a opção selecionada
                 when (option) {
-                    1 -> {
-                        // Opção 1 selecionada
-                        // Faça algo aqui
-                    }
-                    2 -> {
-                        // Opção 2 selecionada
-                        // Faça algo aqui
-                    }
-                    3 -> {
-                        // Opção 3 selecionada
-                        // Faça algo aqui
-                    }
+                    1 -> {}
+                    2 -> {}
+                    3 -> {}
                 }
             })
             Text(
@@ -173,37 +196,46 @@ fun StudentsScreen( curso: String ) {
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
                 horizontalAlignment = Alignment.CenterHorizontally
-            ){
-                items(listStudents){
+            ) {
+                items(listStudents) {
+
+                    var backgroundCard = Color(0, 0, 0)
+
+                    if (it.status == "Finalizado") {
+                        backgroundCard = Color(229, 182, 87)
+                    } else {
+                        backgroundCard = Color(51, 71, 176)
+                    }
                     Card(
                         modifier = Modifier
                             .height(250.dp)
                             .width(250.dp)
-                            .clickable{
-                                var openStudent = Intent(context, StudentActivity::class.java)
-                                openStudent.putExtra("matricula",it.matricula)
+                            .clickable {
+                                var openStudent =
+                                    Intent(context, StudentActivity::class.java)
+                                openStudent.putExtra("matricula", it.matricula)
 
                                 //start a Activity
                                 context.startActivity(openStudent)
                             },
-                        shape =RoundedCornerShape(25.dp),
-                        backgroundColor =Color(229, 182, 87),
+                        shape = RoundedCornerShape(25.dp),
+                        backgroundColor = backgroundCard,
                         elevation = 4.dp
-                    ){
+                    ) {
                         Column(
                             modifier = Modifier
                                 .fillMaxSize()
                                 .padding(15.dp),
                             verticalArrangement = Arrangement.Center,
                             horizontalAlignment = Alignment.CenterHorizontally
-                        ){
+                        ) {
                             AsyncImage(
-                                model =it.foto,
+                                model = it.foto,
                                 contentDescription = "",
                                 modifier = Modifier.size(170.dp)
                             )
                             Text(
-                                text =it.nome.uppercase(),
+                                text = it.nome.uppercase(),
                                 color = Color.White,
                                 modifier = Modifier.fillMaxWidth(),
                                 fontSize = 20.sp,
@@ -227,28 +259,33 @@ fun ToggleButton(selectedOption: Int, onOptionSelected: (Int) -> Unit) {
             .fillMaxWidth()
             .padding(vertical = 16.dp),
         horizontalArrangement = Arrangement.Center
-    ){
-        val options =listOf("Todos", "Cursando", "Finalizado")
-        options.forEachIndexed{index, option->
+    ) {
+        val options = listOf("Todos", "Cursando", "Finalizado")
+        options.forEachIndexed { index, option ->
             val isSelected = index + 1 == selectedOption
             Button(
-                onClick ={onOptionSelected(index + 1)},
+                onClick = { onOptionSelected(index + 1) },
                 modifier = Modifier
                     .weight(1f)
                     .height(48.dp)
                     .padding(horizontal = 6.dp),
                 shape = MaterialTheme.shapes.medium,
                 colors = ButtonDefaults.buttonColors(
-                    backgroundColor = if (isSelected)Color(51, 71, 176) else Color(164, 177, 248, 255),
-                contentColor = if (isSelected)Color(231, 191, 96) else Color(51, 71, 176)
-            )
-            ){
-            Text(
-                text = option,
-                style = MaterialTheme.typography.body1,
-                fontSize = 16.sp,
-            )
-        }
+                    backgroundColor = if (isSelected) Color(51, 71, 176) else Color(
+                        164,
+                        177,
+                        248,
+                        255
+                    ),
+                    contentColor = if (isSelected) Color(231, 191, 96) else Color(51, 71, 176)
+                )
+            ) {
+                Text(
+                    text = option,
+                    style = MaterialTheme.typography.body1,
+                    fontSize = 16.sp,
+                )
+            }
         }
     }
 }

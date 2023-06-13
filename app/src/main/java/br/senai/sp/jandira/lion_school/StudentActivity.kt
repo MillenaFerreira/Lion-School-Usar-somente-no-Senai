@@ -1,25 +1,13 @@
 package br.senai.sp.jandira.lion_school
 
-import android.content.Intent
 import android.os.Bundle
 import android.util.Log
-import android.view.Surface
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -37,17 +25,17 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import br.senai.sp.jandira.lion_school.model.Student
-import br.senai.sp.jandira.lion_school.model.StudentRegistration
-import br.senai.sp.jandira.lion_school.model.StudentsList
 import br.senai.sp.jandira.lion_school.service.RetrofitFactory
 import br.senai.sp.jandira.lion_school.ui.theme.LionSchoolTheme
+import coil.compose.AsyncImage
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -66,155 +54,158 @@ class StudentActivity : ComponentActivity() {
 
 
 @Composable
-fun StudentScreen(matricula : String) {
-
-    Log.i("TAG", "StudentScreen: $matricula")
-
-    //contexto atual
+fun StudentScreen(matricula: String) {
     val context = LocalContext.current
 
-    var alunoState by remember { mutableStateOf(
-        StudentRegistration(
-            aluno = Student("", "", "", emptyList())
-        )
-    ) }
+    var student by remember {
+        mutableStateOf(Student("", "", "", emptyList()))
+    }
 
     val call = RetrofitFactory().getStudentsService().getStudentRegistration(matricula)
 
-    call.enqueue(object : Callback<StudentRegistration> {
-        override fun onResponse(
-            callback: Call<StudentRegistration>,
-            response: Response<StudentRegistration>
-        ) {
-            alunoState = response.body()!!
+    call.enqueue(object : Callback<Student> {
+        override fun onResponse(call: Call<Student>, response: Response<Student>) {
+            if (response.isSuccessful) {
+                val studentResponse = response.body()
+                if (studentResponse != null) {
+                    student = studentResponse
+                }
+            } else {
+                Log.e("teste", "Erro na resposta da API: ${response.code()}")
+            }
         }
-        override fun onFailure(call: Call<StudentRegistration>, t: Throwable) {
+
+        override fun onFailure(call: Call<Student>, t: Throwable) {
             Log.i("teste", "onFailure: ${t.message} ")
         }
     })
-
-    Log.i("tag", "onResponse: ${alunoState.aluno.curso}")
-    Log.i("tag", "onResponse: ${alunoState.aluno}")
-
 
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(
-                brush = Brush
-                    .verticalGradient(
-                        listOf(
-                            Color(51, 71, 176),
-                            Color(255, 255, 255)
-                        )
+                Brush.verticalGradient(
+                    colors = listOf(
+                        Color(51, 71, 176),
+                        Color(255, 255, 255)
                     )
+                )
             )
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(15.dp)
-        ) {
-            Icon(
-                painter = painterResource(id = R.drawable.baseline_arrow_back_24),
-                contentDescription = "",
-                tint = Color.White,
+        Column(modifier = Modifier.fillMaxSize()) {
+            Row(
                 modifier = Modifier
-                    .size(21.dp)
-
-
-            )
-            Spacer(modifier = Modifier.height(10.dp))
+                    .fillMaxWidth()
+                    .padding(5.dp)
+            ) {}
+            Spacer(modifier = Modifier.size(10.dp))
             Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(Color.Blue, shape = RoundedCornerShape(25.dp))
-                    .padding(13.dp),
+                modifier = Modifier.fillMaxWidth(),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Image(
-                    painter = painterResource(id = R.drawable.logo_icon),
-                    contentDescription = "",
-                    modifier = Modifier
-                        .size(200.dp)
-                )
-                Spacer(modifier = Modifier.height(7.dp))
-                Text(
-                    text = "Hélida Bento de Oliveira Liz".uppercase(),
-                    color = Color.White,
-                    fontSize = 36.sp,
-                    textAlign = TextAlign.Center
-                )
-                Card(
-                    modifier = Modifier
-                        .width(260.dp)
-                        .height(380.dp),
-                    shape = RoundedCornerShape(10.dp)
+                LazyColumn(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Spacer(modifier = Modifier.height(10.dp))
-                    LazyColumn(
-                        modifier = Modifier.fillMaxSize(),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        items(alunoState.aluno.curso[0].disciplinas){
-                            var barra = 2.4 * it.media.toDouble()
-                            Column(modifier = Modifier
-                                .width(240.dp)
-                                .height(40.dp)
+                    items(student.curso) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(15.dp),
+                            verticalArrangement = Arrangement.Center,
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            AsyncImage(
+                                model = student.foto,
+                                contentDescription = "",
+                                modifier = Modifier.size(230.dp)
+                            )
+
+                            Text(
+                                text = student.nome,
+                                color = Color.White,
+                                modifier = Modifier.fillMaxWidth(),
+                                fontSize = 32.sp,
+                                textAlign = TextAlign.Center
+                            )
+                        }
+                        Card(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(400.dp)
+                                .padding(20.dp),
+                            shape = RoundedCornerShape(25.dp),
+                            backgroundColor = Color.White
+                        ) {
+                            Spacer(modifier = Modifier.height(10.dp))
+                            LazyColumn(
+                                modifier = Modifier.fillMaxSize(),
+                                horizontalAlignment = Alignment.CenterHorizontally
                             ) {
-                                Text(
-                                    text = it.nome,
-                                    fontWeight = FontWeight(700),
-                                    fontSize = 12.sp,
-                                    color = Color.Black
-                                )
-                                Spacer(modifier = Modifier.height(2.dp))
-                                Box(
-                                    modifier = Modifier
-                                        .height(17.5.dp)
-                                        .width(240.dp)
-                                        .clip(RoundedCornerShape(10.dp))
-                                        .background(
-                                            Color(164, 177, 248, 255)
-                                        )
-                                ){
-                                    Box(
+                                items(student.curso[0].disciplinas) {
+
+                                    Spacer(modifier = Modifier.height(10.dp))
+
+                                    var barra = 2.4 * it.media.toDouble()
+                                    var corBarra = Color.White
+
+                                    if (it.media.toDouble() > 60) {
+                                        corBarra = Color(116, 131, 239)
+                                    } else if (it.media.toDouble() < 60 && it.media.toDouble() > 50) {
+                                        corBarra = Color(229, 182, 87)
+                                    } else {
+                                        corBarra = Color(239, 116, 116)
+                                    }
+                                    Column(
                                         modifier = Modifier
-                                            .fillMaxHeight()
-                                            .clip(RoundedCornerShape(10.dp))
-                                            .background(
-                                                Color(231, 191, 96)
-                                            )
-                                            .width(barra.dp)
-                                            .padding(0.dp, 0.dp, 5.dp, 0.dp),
-                                        contentAlignment = Alignment.CenterEnd
-                                    ){
+                                            .width(240.dp)
+                                            .height(40.dp)
+                                    ) {
                                         Text(
-                                            text = it.media + "%",
+                                            text = it.nome,
                                             fontWeight = FontWeight(700),
                                             fontSize = 12.sp,
-                                            color = Color.White
+                                            color = colorResource(id = R.color.black)
                                         )
+                                        Spacer(modifier = Modifier.height(2.dp))
+                                        Box(
+                                            modifier = Modifier
+                                                .height(17.5.dp)
+                                                .width(240.dp)
+                                                .clip(RoundedCornerShape(10.dp))
+                                                .background(
+                                                    Color.Black
+                                                )
+                                        ) {
+                                            Box(
+                                                modifier = Modifier
+                                                    .fillMaxHeight()
+                                                    .clip(RoundedCornerShape(10.dp))
+                                                    .background(
+                                                        corBarra
+                                                    )
+                                                    .width(barra.dp)
+                                                    .padding(0.dp, 0.dp, 5.dp, 0.dp),
+                                                contentAlignment = Alignment.CenterEnd
+                                            ) {
+                                                Text(
+                                                    text = it.media + "%",
+                                                    fontWeight = FontWeight(700),
+                                                    fontSize = 12.sp,
+                                                    color = Color.Black
+                                                )
+                                            }
+                                        }
                                     }
+                                    Spacer(modifier = Modifier.height(15.dp))
                                 }
                             }
-                            Spacer(modifier = Modifier.height(15.dp))
                         }
                     }
+
                 }
 
             }
         }
     }
-
-
-
 }
-
-//@Preview(showBackground = true, showSystemUi = true)
-//@Composable
-//fun DefaultPreview2() {
-//    LionSchoolTheme {
-//        StudentScreen("20151001016")
-//    }
-//}

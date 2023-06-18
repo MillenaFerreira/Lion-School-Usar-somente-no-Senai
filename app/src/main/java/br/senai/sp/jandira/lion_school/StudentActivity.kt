@@ -151,7 +151,7 @@ fun StudentScreen(matricula: String) {
 
                                     if (it.media.toDouble() > 60) {
                                         corBarra = Color(116, 131, 239)
-                                    } else if (it.media.toDouble() < 60 && it.media.toDouble() > 50) {
+                                    } else if (it.media.toDouble() < 60 && it.media.toDouble() >= 50) {
                                         corBarra = Color(229, 182, 87)
                                     } else {
                                         corBarra = Color(239, 116, 116)

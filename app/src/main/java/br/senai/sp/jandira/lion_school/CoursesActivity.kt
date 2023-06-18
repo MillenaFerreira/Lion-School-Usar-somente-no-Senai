@@ -42,7 +42,7 @@ class CoursesActivity : ComponentActivity() {
         }
     }
 }
-
+// NA AÇÃO DO CLICK DA LUPA É EXECUTADO O FILTRO
 @Preview(showBackground = true)
 @Composable
 fun CoursesScreen() {
@@ -58,12 +58,17 @@ fun CoursesScreen() {
         mutableStateOf(listOf<br.senai.sp.jandira.lion_school.model.Courses>())
     }
 
+    var listCoursesStatus by remember {
+        mutableStateOf(listOf<br.senai.sp.jandira.lion_school.model.Courses>())
+    }
+
     //Cria uma chamada para o endpoint
     val call = RetrofitFactory().getCoursesService().getCourses()
 
     call.enqueue(object : Callback<CoursesList>{
         override fun onResponse(call: Call<CoursesList>, response: Response<CoursesList>) {
             listCourses = response.body()!!.cursos
+            listCoursesStatus = response.body()!!.cursos
             Log.i("ds2t", "onResponse: ${response.body()!!.cursos}")
         }
 
@@ -71,13 +76,6 @@ fun CoursesScreen() {
             Log.i("teste", "onFailure: ${t.message} ")
         }
     })
-
-    fun filterBySigla (sigla: String) {
-        var listNew = listCourses.filter { it.sigla == sigla }
-        if(listNew.isEmpty()){
-            listCourses = listNew
-        }
-    }
 
     Box(
         modifier = Modifier
@@ -116,8 +114,7 @@ fun CoursesScreen() {
                 OutlinedTextField(
                     value = siglaState,
                     onValueChange = {
-                        siglaState = it
-                        filterBySigla(it)
+                        siglaState = it.uppercase()
                     },
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(50.dp),
@@ -138,7 +135,14 @@ fun CoursesScreen() {
                                 id = R.drawable.baseline_search_24
                             ),
                             contentDescription = "",
-                            tint = Color.White
+                            tint = Color.White,
+                            modifier = Modifier.clickable {
+                                listCoursesStatus = listCourses.filter { it.sigla == "$siglaState" }
+
+                                if(siglaState == ""){
+                                    listCoursesStatus = listCourses
+                                }
+                            }
                         )
                     }
                 )
@@ -159,7 +163,7 @@ fun CoursesScreen() {
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally
             ){
-                items(listCourses){
+                items(listCoursesStatus){
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
